@@ -86,5 +86,8 @@ print(round(t2 - t, 2), 'Seconds to train model...')
 print('Test Accuracy of model = ', round(model.score(X_test, y_test), 4))
 
 # save
-pickle.dump(model, open('model.pkl', 'wb'))
-pickle.dump(X_scaler, open('X_scaler.pkl', 'wb'))
+dist_pickle = {
+    'model': model,
+    'X_scaler': X_scaler
+}
+pickle.dump(dist_pickle, open('model.p', 'wb'))

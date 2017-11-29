@@ -10,3 +10,4 @@ SPATIAL_FEAT = True  # Spatial features on or off
 HIST_FEAT = True  # Histogram features on or off
 HOG_FEAT = True  # HOG features on or off
 Y_START_STOP = [400, 656]  # Min and max in y to search in slide_window()
+SCALE = 1.5
