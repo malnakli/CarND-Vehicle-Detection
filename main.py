@@ -5,11 +5,10 @@ import cv2
 import glob
 import pickle
 import argparse
-
+import time
 from utils import *
 from parameters import *
-
-image = mpimg.imread('test_images/test1.jpg')
+from scipy.ndimage.measurements import label
 
 
 def detect(img, dist_pickle):
@@ -19,38 +18,27 @@ def detect(img, dist_pickle):
     # image you are searching is a .jpg (scaled 0 to 255)
     img = img.astype(np.float32) / 255
 
-    windows = slide_window(img, x_start_stop=[None, None], y_start_stop=Y_START_STOP,
-                           xy_window=(96, 96), xy_overlap=(0.5, 0.5))
-
     model = dist_pickle["model"]
     X_scaler = dist_pickle["X_scaler"]
 
-    hot_windows = search_windows(img, windows, model, X_scaler, color_space=COLOR_SPACE,
-                                 spatial_size=SPATIAL_SIZE, hist_bins=HIST_BINS,
-                                 orient=ORIENT, pix_per_cell=PIX_PER_CELL,
-                                 cell_per_block=CELL_PER_BLOCK,
-                                 hog_channel=HOG_CHANNEL, spatial_feat=SPATIAL_FEAT,
-                                 hist_feat=HIST_FEAT, hog_feat=HOG_FEAT)
+    hot_windows = find_cars(img, Y_START_STOP[0], Y_START_STOP[1], SCALE, model,
+                            X_scaler, ORIENT, PIX_PER_CELL, CELL_PER_BLOCK, SPATIAL_SIZE, HIST_BINS, COLOR_SPACE, SPATIAL_FEAT, HIST_FEAT, HOG_FEAT)
 
-    window_img = draw_boxes(draw_image, hot_windows,
-                            color=(0, 0, 255), thick=6)
+    heat = np.zeros_like(img[:, :, 0]).astype(np.float)
+    heat = add_heat(heat, hot_windows)
+    heat = apply_threshold(heat, 1)
 
-    # out_img = find_cars(img, Y_START_STOP[0], Y_START_STOP[1], SCALE, model,
-    #                   X_scaler, ORIENT, PIX_PER_CELL, CELL_PER_BLOCK, SPATIAL_SIZE, HIST_BINS)
+    heatmap = np.clip(heat, 0, 255)
+    labels = label(heatmap)
+    draw_img = draw_labeled_bboxes(draw_image, labels)
 
-    return window_img
+    return draw_img
 
 
 def read_video(filename='project_video.mp4', saved=False):
     cap = cv2.VideoCapture(filename)
-
-    model = pickle.load(open("model.pkl", 'rb'))
-    X_scaler = pickle.load(open("X_scaler.pkl", 'rb'))
-    dist_pickle = {
-        'model': model,
-        'X_scaler': X_scaler
-    }
-    # dist_pickle = pickle.load(open("model.p", 'rb'))
+    # read dist pickle
+    dist_pickle = pickle.load(open("model.p", 'rb'))
 
     if saved:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Be sure to use lower case
@@ -78,6 +66,25 @@ def read_video(filename='project_video.mp4', saved=False):
     # When everything done, release the capture
     cap.release()
     cv2.destroyAllWindows()
+
+
+def read_test_images():
+    images = glob.glob('data/vehicles/GTI_Far/image0004.png')
+    dist_pickle = pickle.load(open("model.p", 'rb'))
+
+    def save(img, name):
+        filepath = "output_images/" + name + "-" + str(fname.split('/')[-1])
+        cv2.imwrite(filepath, img)
+
+    for idx, fname in enumerate(images):
+        frame = cv2.imread(fname)
+        img = np.copy(frame)
+        t = time.time()
+        dit = detect(img, dist_pickle)
+        t2 = time.time()
+        print(round(t2 - t, 2), 'Seconds')
+
+        save(dit, 'output')
 
 
 def main(args):
