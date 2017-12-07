@@ -11,11 +11,20 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 [car_not_car]: ./examples/car_not_car.png
-[hog_car]: ./output_images/hog_car.png
-[hog_notcar]: ./output_images/hog_notcar.png
-[sliding_window1]: ./output_images/sliding_window-.jpg
-[sliding_window2]: ./output_images/sliding_window-.jpg
-[sliding_window3]: ./output_images/sliding_window-.jpg
+[hog_car1]: ./output_images/hog_car_ch0.png
+[hog_car2]: ./output_images/hog_car_ch1.png
+[hog_car3]: ./output_images/hog_car_ch2.png
+[hog_notcar1]: ./output_images/hog_notcar_ch0.png
+[hog_notcar2]: ./output_images/hog_notcar_ch1.png
+[hog_notcar3]: ./output_images/hog_notcar_ch2.png
+
+[sliding_window1]: ./output_images/sliding_window-test1.jpg
+[sliding_window2]: ./output_images/sliding_window-test4.jpg
+[sliding_window3]: ./output_images/sliding_window-test5.jpg
+
+[heat1]: ./output_images/heat_map-test1.jpg
+[heat2]: ./output_images/heat_map-test4.jpg
+[heat3]: ./output_images/heat_map-test5.jpg
 
 [image5]: ./examples/bboxes_and_heat.png
 [image6]: ./examples/labels_map.png
@@ -46,7 +55,9 @@ I then explored different color spaces and different `skimage.hog()` parameters 
 
 Here is an example using the `YCrCb` color space and HOG parameters of `orientations=9`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
 
-![alt text][hog_car] ![alt text][hog_notcar]
+![alt text][hog_car1] ![alt text][hog_notcar1]
+![alt text][hog_car2] ![alt text][hog_notcar2]
+![alt text][hog_car3] ![alt text][hog_notcar3]
 
 #### 2. Explain how you settled on your final choice of HOG parameters.
 
@@ -60,7 +71,7 @@ All the code need to train a model in `train.py` file.
 3. split data into training and testing manual because some of the vehicles data are the same, which appear more than once, but typically under significantly different lighting/angle from other instances.
 4. I trained a SVM using `sklearn.svm.SVC` with the following parameters 
 # TODO fill the parameters
-`kernel=`,`C=`,`gamma=`
+`kernel=linear`,`C=5`,`gamma=auto`
 
 ### Sliding Window Search
 
@@ -101,7 +112,7 @@ I recorded the positions of positive detections in each frame of the video.  Fro
 
 Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
 
-TODO
+
 
 ### Here are six frames and their corresponding heatmaps:
 ![alt text][image5]
