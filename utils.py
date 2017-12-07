@@ -122,13 +122,12 @@ def draw_boxes(img, bboxes, color=(0, 0, 255), thick=6):
 # Define a single function that can extract features using hog sub-sampling and make predictions
 def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, color_space, spatial_feat, hist_feat, hog_feat):
 
-    draw_img = np.copy(img)
     img_tosearch = img[ystart:ystop, :, :]
 
     if color_space != 'RGB':
         ctrans_tosearch = convert_color(img_tosearch, conv=color_space)
     else:
-        ctrans_tosearch = np.copy(img)
+        ctrans_tosearch = np.copy(img_tosearch)
 
     if scale != 1:
         imshape = ctrans_tosearch.shape
@@ -144,8 +143,8 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
     nyblocks = (ch1.shape[0] // pix_per_cell) - cell_per_block + 1
     nfeat_per_block = orient * cell_per_block**2
 
-    # 64 was the original sampling rate, with 8 cells and 6 pix per cell
-    window = 60
+    # 64 was the original sampling rate, with 8 cells and 8 pix per cell
+    window = 64
     nblocks_per_window = (window // pix_per_cell) - cell_per_block + 1
     cells_per_step = 2  # Instead of overlap, define how many cells to step
     nxsteps = (nxblocks - nblocks_per_window) // cells_per_step

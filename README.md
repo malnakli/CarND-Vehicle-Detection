@@ -33,7 +33,7 @@ You're reading it!
 
 #### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
-The code for this step is contained in lines # through # of the file called `utils.py`, it begin called within `extract_features()` function .  
+The code for extracted HOG features is contained in lines # 21 through # 39 of the file called `utils.py`. 
 
 I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
 
@@ -41,26 +41,47 @@ I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an 
 
 I then explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`).  I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.
 
-Here is an example using the `YCrCb` color space and HOG parameters of `orientations=9`, `pixels_per_cell=(6, 6)` and `cells_per_block=(2, 2)`:
+Here is an example using the `YCrCb` color space and HOG parameters of `orientations=9`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
 
-
+# TODO add images
 ![alt text][image2]
 
 #### 2. Explain how you settled on your final choice of HOG parameters.
 
-I tried various combinations of parameters and...
+I tried various combinations of parameters such as I decrease pixels_per_cell = (2,2) and I selected randoms orientations between 6 and 12, however, I found that the best combinations that balance between accuracy and speed is the one I mentioned earlier. For example, select lower number for pixels_per_cell it could increase the accuracy a bit, but it takes longer to extract HOG features.
 
 #### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
-I trained a linear SVM using...
+All the code need to train a model in `train.py` file.
+1. I loaded car and non-cars data.
+2. Extract features (HOG, color and spatial features) for both data by using `extract_features` function in `utils.py` in lines # 66 through # 106
+3. split data into training and testing by using `sklearn.model_selection.train_test_split`
+4. I trained a SVM using `sklearn.svm.SVC` with the following parameters 
+# TODO fill the parameters
+`kernel=`,`C=`,`gamma=`
 
 ### Sliding Window Search
 
 #### 1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
 
-I decided to search random window positions at random scales all over the image and came up with this (ok just kidding I didn't actually ;):
+I implemented by sliding window by using sub-sampling, the entire code can be found in line # 123 through # 214 in `utils.py`. 
 
-![alt text][image3]
+1. Crop unnecessary region of the image from top and bottom (400px, 656px)
+2. convert the image if the training images have been converted
+3. resize the image by 1.5  # TODO
+4. get the three channels 
+5. # TODO add an image
+6. Compute individual channel HOG features for the entire image
+7. loop through the entire image and of each cell block do the following:
+    1. Obtain the hog features if it turn on, by combining HOG features for each individual channel 
+    2. Obtain spatial features if turn on
+    3. Obtain color features if turn on
+    4. concatenate features and apply normalization since it was applied on training data.
+    5. predict if a car or not, 
+    6. if the cell block was a predicted to be a car then add its box coordinates to an array.
+8. return boxes that predicted to be a car
+
+# TODO add an image
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
