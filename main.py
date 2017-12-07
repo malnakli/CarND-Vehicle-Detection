@@ -76,23 +76,26 @@ def read_test_images():
                        "test_images/test1.jpg", "test_images/test5.jpg"]
     dist_pickle = pickle.load(open("model.p", 'rb'))
 
-    def save(img, name):
+    def save(img, name, fname):
         filepath = "output_images/" + name + "-" + str(fname.split('/')[-1])
         cv2.imwrite(filepath, img)
 
-    #####
-    car = cv2.imread(car)
-    features, hog_car = get_hog_features(car, orient=ORIENT, pix_per_cell=PIX_PER_CELL,
-                                         cell_per_block=CELL_PER_BLOCK, vis=True)
-    save(hog_car, 'hog_car')
-    ######
-    notcar = cv2.imread(notcar)
-    features, hog_notcar = get_hog_features(notcar, orient=ORIENT, pix_per_cell=PIX_PER_CELL,
-                                            cell_per_block=CELL_PER_BLOCK, vis=True)
-    save(hog_notcar, 'hog_notcar')
-    #####
-    for img in sliding_windows:
-        img = cv2.imread(img)
+    # car hog features
+    car_img = cv2.imread(car)
+    for ch in range(0, 2):
+
+        features, hog_car = get_hog_features(car_img[:, :, ch], orient=ORIENT, pix_per_cell=PIX_PER_CELL,
+                                             cell_per_block=CELL_PER_BLOCK, vis=True)
+        save(hog_car, 'hog_car_ch' + str(ch), car)
+    # not car hog features
+    notcar_img = cv2.imread(notcar)
+    for ch in range(0, 2):
+        features, hog_notcar = get_hog_features(notcar_img[:, :, ch], orient=ORIENT, pix_per_cell=PIX_PER_CELL,
+                                                cell_per_block=CELL_PER_BLOCK, vis=True)
+        save(hog_notcar, 'hog_notcar_ch' + str(ch), notcar)
+    # sliding windows
+    for img_path in sliding_windows:
+        img = cv2.imread(img_path)
         draw_image = np.copy(img)
         model = dist_pickle["model"]
         X_scaler = dist_pickle["X_scaler"]
@@ -100,11 +103,11 @@ def read_test_images():
                                 X_scaler, ORIENT, PIX_PER_CELL, CELL_PER_BLOCK, SPATIAL_SIZE, HIST_BINS, COLOR_SPACE, SPATIAL_FEAT, HIST_FEAT, HOG_FEAT)
 
         draw_image = draw_boxes(draw_image, hot_windows)
-        save(draw_image, 'sliding_window')
+        save(draw_image, 'sliding_window', img_path)
     #####
-    detect_car = cv2.imread(detect_car)
-    detect_car = detect(detect_car, dist_pickle)
-    save(detect_car, 'detect_car')
+    detect_car_img = cv2.imread(detect_car)
+    detect_car_img = detect(detect_car_img, dist_pickle)
+    save(detect_car_img, 'detect_car', detect_car)
 
 
 def main(args):
