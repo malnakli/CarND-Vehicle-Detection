@@ -9,6 +9,7 @@ import time
 from utils import *
 from parameters import *
 from scipy.ndimage.measurements import label
+from tracker import Track
 
 
 def detect(img, dist_pickle):
@@ -30,7 +31,8 @@ def detect(img, dist_pickle):
 
     heatmap = np.clip(heat, 0, 255)
     labels = label(heatmap)
-    draw_img = draw_labeled_bboxes(draw_image, labels)
+    draw_img = Track.next_frame(draw_image, labels)
+   # draw_img = draw_labeled_bboxes(draw_image, labels)
 
     return draw_img
 
@@ -122,7 +124,7 @@ def read_test_images():
 
 
 def main(args):
-    read_video(filename=args.fileinput, saved=args.save_video)
+    read_video(filename="test_video.mp4", saved=args.save_video)
     # read_test_images()
 
 
