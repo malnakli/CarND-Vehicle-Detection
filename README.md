@@ -10,10 +10,13 @@ The goals / steps of this project are the following:
 * Estimate a bounding box for vehicles detected.
 
 [//]: # (Image References)
-[image1]: ./examples/car_not_car.png
-[image2]: ./examples/HOG_example.jpg
-[image3]: ./examples/sliding_windows.jpg
-[image4]: ./examples/sliding_window.jpg
+[car_not_car]: ./examples/car_not_car.png
+[hog_car]: ./output_images/hog_car.png
+[hog_notcar]: ./output_images/hog_notcar.png
+[sliding_window1]: ./output_images/sliding_window-.jpg
+[sliding_window2]: ./output_images/sliding_window-.jpg
+[sliding_window3]: ./output_images/sliding_window-.jpg
+
 [image5]: ./examples/bboxes_and_heat.png
 [image6]: ./examples/labels_map.png
 [image7]: ./examples/output_bboxes.png
@@ -37,14 +40,13 @@ The code for extracted HOG features is contained in lines # 21 through # 39 of t
 
 I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
 
-![alt text][image1]
+![alt text][car_not_car]
 
 I then explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`).  I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.
 
 Here is an example using the `YCrCb` color space and HOG parameters of `orientations=9`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
 
-# TODO add images
-![alt text][image2]
+![alt text][hog_car] ![alt text][hog_notcar]
 
 #### 2. Explain how you settled on your final choice of HOG parameters.
 
@@ -55,7 +57,7 @@ I tried various combinations of parameters such as I decrease pixels_per_cell = 
 All the code need to train a model in `train.py` file.
 1. I loaded car and non-cars data.
 2. Extract features (HOG, color and spatial features) for both data by using `extract_features` function in `utils.py` in lines # 66 through # 106
-3. split data into training and testing by using `sklearn.model_selection.train_test_split`
+3. split data into training and testing manual because some of the vehicles data are the same, which appear more than once, but typically under significantly different lighting/angle from other instances.
 4. I trained a SVM using `sklearn.svm.SVC` with the following parameters 
 # TODO fill the parameters
 `kernel=`,`C=`,`gamma=`
@@ -68,26 +70,23 @@ I implemented by sliding window by using sub-sampling, the entire code can be fo
 
 1. Crop unnecessary region of the image from top and bottom (400px, 656px)
 2. convert the image if the training images have been converted
-3. resize the image by 1.5  # TODO
-4. get the three channels 
-5. # TODO add an image
-6. Compute individual channel HOG features for the entire image
-7. loop through the entire image and of each cell block do the following:
+3. resize the image by scale it down (33.3%)
+4. get the three channels of `YCrCb`
+5. Compute individual channel HOG features for the entire image
+6. loop through the entire image and of each cell block do the following:
     1. Obtain the hog features if it turn on, by combining HOG features for each individual channel 
     2. Obtain spatial features if turn on
     3. Obtain color features if turn on
     4. concatenate features and apply normalization since it was applied on training data.
     5. predict if a car or not, 
     6. if the cell block was a predicted to be a car then add its box coordinates to an array.
-8. return boxes that predicted to be a car
-
-# TODO add an image
+9. return boxes that predicted to be a car
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
 Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
 
-![alt text][image4]
+![alt text][sliding_window1] ![alt text][sliding_window2] ![alt text][sliding_window3]
 ---
 
 ### Video Implementation
@@ -102,8 +101,9 @@ I recorded the positions of positive detections in each frame of the video.  Fro
 
 Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
 
-### Here are six frames and their corresponding heatmaps:
+TODO
 
+### Here are six frames and their corresponding heatmaps:
 ![alt text][image5]
 
 ### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:

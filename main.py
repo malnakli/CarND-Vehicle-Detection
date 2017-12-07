@@ -16,7 +16,7 @@ def detect(img, dist_pickle):
     # the following line if you extracted training
     # data from .png images (scaled 0 to 1 by mpimg) and the
     # image you are searching is a .jpg (scaled 0 to 255)
-    img = img.astype(np.float32) / 255
+    # img = img.astype(np.float32) / 255
 
     model = dist_pickle["model"]
     X_scaler = dist_pickle["X_scaler"]
@@ -69,22 +69,42 @@ def read_video(filename='project_video.mp4', saved=False):
 
 
 def read_test_images():
-    images = glob.glob('data/vehicles/GTI_Far/image0004.png')
+    car = "data/vehicles/GTI_Far/image0004.png"
+    notcar = "data/non-vehicles/GTI/image776.png"
+    detect_car = "test_images/test1.jpg"
+    sliding_windows = ["test_images/test4.jpg",
+                       "test_images/test1.jpg", "test_images/test5.jpg"]
     dist_pickle = pickle.load(open("model.p", 'rb'))
 
     def save(img, name):
         filepath = "output_images/" + name + "-" + str(fname.split('/')[-1])
         cv2.imwrite(filepath, img)
 
-    for idx, fname in enumerate(images):
-        frame = cv2.imread(fname)
-        img = np.copy(frame)
-        t = time.time()
-        dit = detect(img, dist_pickle)
-        t2 = time.time()
-        print(round(t2 - t, 2), 'Seconds')
+    #####
+    car = cv2.imread(car)
+    features, hog_car = get_hog_features(car, orient=ORIENT, pix_per_cell=PIX_PER_CELL,
+                                         cell_per_block=CELL_PER_BLOCK, vis=True)
+    save(hog_car, 'hog_car')
+    ######
+    notcar = cv2.imread(notcar)
+    features, hog_notcar = get_hog_features(notcar, orient=ORIENT, pix_per_cell=PIX_PER_CELL,
+                                            cell_per_block=CELL_PER_BLOCK, vis=True)
+    save(hog_notcar, 'hog_notcar')
+    #####
+    for img in sliding_windows:
+        img = cv2.imread(img)
+        draw_image = np.copy(img)
+        model = dist_pickle["model"]
+        X_scaler = dist_pickle["X_scaler"]
+        hot_windows = find_cars(img, Y_START_STOP[0], Y_START_STOP[1], SCALE, model,
+                                X_scaler, ORIENT, PIX_PER_CELL, CELL_PER_BLOCK, SPATIAL_SIZE, HIST_BINS, COLOR_SPACE, SPATIAL_FEAT, HIST_FEAT, HOG_FEAT)
 
-        save(dit, 'output')
+        draw_image = draw_boxes(draw_image, hot_windows)
+        save(draw_image, 'sliding_window')
+    #####
+    detect_car = cv2.imread(detect_car)
+    detect_car = detect(detect_car, dist_pickle)
+    save(detect_car, 'detect_car')
 
 
 def main(args):

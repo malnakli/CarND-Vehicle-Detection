@@ -9,20 +9,21 @@ from sklearn.preprocessing import StandardScaler
 from skimage.feature import hog
 from utils import extract_features
 from parameters import *
-from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
 import pickle
-from sklearn.model_selection import RandomizedSearchCV
 # Read in cars and notcars
 cars = glob.glob('data/vehicles/*/*.png')
+cars_test = glob.glob('data/vehicles_test/*.png')
 notcars = glob.glob('data/non-vehicles/*/*.png')
+notcars_test = glob.glob('data/non-vehicles_test/*.png')
 
 
-def data_look(car_list, notcar_list):
+def data_look(car_list, car_test_list, notcar_list, notcar_test_list):
     data_dict = {}
     # Define a key in data_dict "n_cars" and store the number of car images
-    data_dict["n_cars"] = len(car_list)
+    data_dict["n_cars"] = len(car_list) + len(car_test_list)
     # Define a key "n_notcars" and store the number of notcar images
-    data_dict["n_notcars"] = len(notcar_list)
+    data_dict["n_notcars"] = len(notcar_list) + len(notcar_test_list)
     # Read in a test image, either car or notcar
     # Define a key "image_shape" and store the test image shape 3-tuple
     example_img = mpimg.imread(car_list[0])
@@ -44,21 +45,33 @@ def data_extract_features(data):
 
 def split_data():
     car_features = data_extract_features(cars)
+    car_test_features = data_extract_features(cars_test)
     notcar_features = data_extract_features(notcars)
+    notcar_test_features = data_extract_features(notcars_test)
+
     X = np.vstack((car_features, notcar_features)).astype(np.float64)
     # Fit a per-column scaler
     X_scaler = StandardScaler().fit(X)
     # Apply the scaler to X
-    scaled_X = X_scaler.transform(X)
-
+    X_train = X_scaler.transform(X)
+    X_test = X_scaler.transform(
+        np.vstack((car_test_features, notcar_test_features)).astype(np.float64))
     # Define the labels vector
-    y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))
+    y_train = np.hstack((np.ones(len(car_features)),
+                         np.zeros(len(notcar_features))))
+    # Define the labels vector
+    y_test = np.hstack((np.ones(len(car_test_features)),
+                        np.zeros(len(notcar_test_features))))
 
-    # Split up data into randomized training and test sets
     rand_state = np.random.randint(0, 100)
+    # shuffle
+    X_train, y_train = shuffle(X_train, y_train, random_state=rand_state)
+    X_test, y_test = shuffle(X_test, y_test, random_state=rand_state)
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        scaled_X, y, test_size=0.2, random_state=rand_state)
+    # to make sure
+    rand_state = np.random.randint(0, 100)
+    X_train, y_train = shuffle(X_train, y_train, random_state=rand_state)
+    X_test, y_test = shuffle(X_test, y_test, random_state=rand_state)
 
     return X_train, X_test, y_train, y_test, X_scaler
 
@@ -73,15 +86,15 @@ def load_data(regenerate=False):
         dict_data["y_test"] = y_test
         dict_data["X_scaler"] = X_scaler
 
-        pickle.dump(dict_data, open('data.p', 'wb'))
+        pickle.dump(dict_data, open('_data.p', 'wb'))
     else:
-        dict_data = pickle.load(open("data.p", 'rb'))
+        dict_data = pickle.load(open("_data.p", 'rb'))
 
     return dict_data
 
 
 def train_model(dict_data):
-    model = SVC(kernel="rbf", C=5.0, gamma=0.01)
+    model = SVC(kernel="rbf", C=15.0, gamma=0.0000002)
     t = time.time()
     model.fit(dict_data['X_train'], dict_data['y_train'])
     t2 = time.time()
@@ -91,7 +104,7 @@ def train_model(dict_data):
         'model': model,
         'X_scaler': dict_data["X_scaler"]
     }
-    pickle.dump(dist_pickle, open('model_rbf_5_01.p', 'wb'))
+    pickle.dump(dist_pickle, open('model_rbf.p', 'wb'))
 
     print('Test Accuracy of model = ', round(
         dist_pickle["model"].score(dict_data['X_test'], dict_data['y_test']), 4))
@@ -99,8 +112,8 @@ def train_model(dict_data):
 
 def main():
     # PRINT SOME INFO
-    data_info = data_look(cars, notcars)
-    dict_data = load_data()
+    data_info = data_look(cars, cars_test, notcars, notcars_test)
+    dict_data = load_data(True)
 
     print(data_info["n_cars"], ' cars and',
           data_info["n_notcars"], ' non-cars')
@@ -116,18 +129,22 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # dict_data = load_data()
+    # print('loaded data')
+    # dist_pickle = pickle.load(open("model_linear.p", 'rb'))
+    # print('loaded model')
+    # print('Test Accuracy of model = ', round(
+    #     dist_pickle["model"].score(dict_data['X_test'][0:200], dict_data['y_test'][0:200]), 4))
 
+    # Use a SVC
+    # parameters = {'C': np.arange(0.0, 10 + 0.0, 1).tolist(),
+    #               'gamma': np.arange(0.0, 0.5 + 0.0, 0.05).tolist()}
 
-# Use a SVC
-# parameters = {'C': np.arange(0.0, 10 + 0.0, 1).tolist(),
-#               'gamma': np.arange(0.0, 0.5 + 0.0, 0.05).tolist()}
+    #model = SVC(kernel='linear', C=1.0, gamma=0.1)
+    # clf = RandomizedSearchCV(
+    #     estimator=model, param_distributions=parameters, n_jobs=2, verbose=9)
 
-#model = SVC(kernel='linear', C=1.0, gamma=0.1)
-# clf = RandomizedSearchCV(
-#     estimator=model, param_distributions=parameters, n_jobs=2, verbose=9)
-
-
-# print(clf.best_estimator_)
-# print(clf.best_score_)
-# print(clf.best_params_)
-# Check the score of the SVC
+    # print(clf.best_estimator_)
+    # print(clf.best_score_)
+    # print(clf.best_params_)
+    # Check the score of the SVC
