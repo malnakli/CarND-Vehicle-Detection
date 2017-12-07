@@ -26,7 +26,7 @@ def detect(img, dist_pickle):
 
     heat = np.zeros_like(img[:, :, 0]).astype(np.float)
     heat = add_heat(heat, hot_windows)
-    heat = apply_threshold(heat, 1)
+    heat = apply_threshold(heat, 2)
 
     heatmap = np.clip(heat, 0, 255)
     labels = label(heatmap)
@@ -122,8 +122,8 @@ def read_test_images():
 
 
 def main(args):
-    #read_video(filename=args.fileinput, saved=args.save_video)
-    read_test_images()
+    read_video(filename=args.fileinput, saved=args.save_video)
+    # read_test_images()
 
 
 if __name__ == "__main__":

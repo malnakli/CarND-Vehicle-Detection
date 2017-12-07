@@ -94,7 +94,7 @@ def load_data(regenerate=False):
 
 
 def train_model(dict_data):
-    model = SVC(kernel="rbf", C=15.0, gamma=0.0000002)
+    model = SVC(kernel="linear", C=10.0)
     t = time.time()
     model.fit(dict_data['X_train'], dict_data['y_train'])
     t2 = time.time()
@@ -104,7 +104,7 @@ def train_model(dict_data):
         'model': model,
         'X_scaler': dict_data["X_scaler"]
     }
-    pickle.dump(dist_pickle, open('model_rbf.p', 'wb'))
+    pickle.dump(dist_pickle, open('model_linear.p', 'wb'))
 
     print('Test Accuracy of model = ', round(
         dist_pickle["model"].score(dict_data['X_test'], dict_data['y_test']), 4))
@@ -113,7 +113,7 @@ def train_model(dict_data):
 def main():
     # PRINT SOME INFO
     data_info = data_look(cars, cars_test, notcars, notcars_test)
-    dict_data = load_data(True)
+    dict_data = load_data()
 
     print(data_info["n_cars"], ' cars and',
           data_info["n_notcars"], ' non-cars')
