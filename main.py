@@ -27,10 +27,11 @@ def detect(img, dist_pickle):
 
     heat = np.zeros_like(img[:, :, 0]).astype(np.float)
     heat = add_heat(heat, hot_windows)
-    heat = apply_threshold(heat, 2)
+    heat = apply_threshold(heat, 1)
 
     heatmap = np.clip(heat, 0, 255)
     labels = label(heatmap)
+    print(labels[1])
     draw_img = Track.next_frame(draw_image, labels)
    # draw_img = draw_labeled_bboxes(draw_image, labels)
 
@@ -124,7 +125,7 @@ def read_test_images():
 
 
 def main(args):
-    read_video(filename="test_video.mp4", saved=args.save_video)
+    read_video(filename='test_video.mp4', saved=args.save_video)
     # read_test_images()
 
 

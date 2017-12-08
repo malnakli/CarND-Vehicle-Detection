@@ -8,20 +8,14 @@ class Track(object):
 
     frame_no = 0
     cars = []
-
     @classmethod
     def next_frame(cls, frame, labels):
         cls.frame_no += 1
         cls.bbox_from_labels(labels)
-
-        if cls.frame_no % 3 == 0:
-           # cls.update_car(frame)
-            cls.cars = [x for x in cls.cars if not cls.delete_car(x)]
-            for car in cls.cars:
-                cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 255, 0), 6)
-        else:
-            for car in cls.cars:
-                cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 0, 255), 6)
+        cls.calculate_car_disply_precentage()
+        disply_cars = [car for car in cls.cars if car.car_disply > .50]
+        for car in disply_cars:
+            cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 0, 255), 6)
 
         return frame
 
@@ -33,45 +27,34 @@ class Track(object):
             cls.cars.append(new_car)
         else:
             car_exist = False
-            if from_update_car:
-                for car in cls.cars:
-                    # car.last_frame_seen = 0  # to be delete
-                    if new_car.is_same_car(car):
-                        new_car.num_of_seen += car.num_of_seen
-                        car.last_frame_seen = 0  # to be delete
-
-            else:
-                for car in cls.cars:
+            for car in cls.cars:
                     if car.is_same_car(new_car):
                         car.num_of_seen += 1
                         car.last_frame_seen = cls.frame_no
+                        car.points = cls.calculate_car_points(car)
                         car_exist = True
                         break
             if not car_exist:
                 cls.cars.append(new_car)
+                
+    @classmethod
+    def calculate_car_points(cls, car):
+
+        num_of_frame_seen = car.num_of_seen 
+        number_of_frame_shown = np.absolute(car.last_frame_seen - car.first_frame_seen) * .5
+        last_frame_seen  = np.absolute(cls.frame_no - car.last_frame_seen)
+        
+        return num_of_frame_seen + number_of_frame_shown - last_frame_seen
 
     @classmethod
-    def delete_car(cls, car):
-        number_of_frame_shown = car.last_frame_seen - car.first_frame_seen
-        total_frame = cls.frame_no - car.first_frame_seen
-        last_time_car_seen = cls.frame_no - car.last_frame_seen
-        # delete the car if it was not seen for 2 frame consecutive
-        if (last_time_car_seen > 2 and number_of_frame_shown < 3):
-            return True
+    def calculate_car_disply_precentage(cls):
 
-        return False
-
-    @classmethod
-    def update_car(cls, frame):
-        heat = np.zeros_like(frame[:, :, 0]).astype(np.float)
-        for car in cls.cars:
-            heat[car.bbox[0][1]:car.bbox[1][1],
-                 car.bbox[0][0]:car.bbox[1][0]] = 1
-
-        cv2.imwrite("temp/heat.png", heat * 255)
-        heatmap = np.clip(heat, 0, 255)
-        labels = label(heatmap)
-        cls.bbox_from_labels(labels, True)
+        cars_points = [car.points for car in cls.cars]
+        # Compute softmax values for each sets of scores in cars_points
+        cars_disply_percentages = np.exp(cars_points) / np.sum(np.exp(cars_points), axis=0)
+        for index, percentage in enumerate(cars_disply_percentages):
+            cls.cars[index].car_disply = percentage
+            print(percentage * 100)
 
     @classmethod
     def bbox_from_labels(cls, labels, from_update_car=False):
@@ -90,6 +73,9 @@ class Car(object):
         self.stop = self.bbox[1][0]
         self.last_frame_seen = frame_no
         self.first_frame_seen = frame_no
+        self.points = 0 # number, which will be used to compare with other frames
+        self.car_disply = 0.0 # change to disply car in percentage
+
 
     def is_same_car(self, car):
       
@@ -100,11 +86,9 @@ class Car(object):
             self.start = self.bbox[0][0]
             self.stop = self.bbox[1][0]
             return True
-        elif self._close_boxes(car):
-            self.start = np.mean([self.start,car.start]).astype(np.int)
-            self.stop = np.mean([self.stop,car.stop]).astype(np.int)
-            self.bbox = ((self.start,self.bbox[0][1]),(self.stop,self.bbox[1][1]))
-            return True
+        # elif self._close_boxes(car):
+        #     self.bbox = ((self.start,self.bbox[0][1]),(self.stop,self.bbox[1][1]))
+        #     return True
 
         return False
     
@@ -125,10 +109,11 @@ class Car(object):
         return labels
 
     def _close_boxes(self,car):
-        # it has to be 2 because there are self and other car to compare
-        if np.absolute(self.stop - car.start) < 20:
+        if np.absolute(self.stop - car.start) < 15:
+            self.stop = car.start
             return True
-        elif np.absolute(self.start - car.stop) < 20:
+        elif np.absolute(self.start - car.stop) < 15:
+            self.start = car.stop
             return True
 
         return False
