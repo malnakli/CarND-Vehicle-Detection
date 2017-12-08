@@ -133,3 +133,9 @@ Here's an example result showing the heatmap from a series of frames of video, t
 
 Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
 
+
+Tracker:
+-  Accept frame and labels (position of cars in that frame).
+- For each label in the frame, check if the car already exist if one of the following the steps below is True:
+1. labels of new car overlaps with an exist car. `_label_overlap` function in line # through # in `tracker.py`
+2. check if the labels are close to each other.  `_close_boxes` function in line # through # in `tracker.py`
