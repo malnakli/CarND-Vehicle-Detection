@@ -112,17 +112,18 @@ class Car(object):
         labels = self._label_overlap(car)
 
         if labels[1] == 1:
-            self.bbox = bbox_from_label(labels[0],1)
-            self.start = self.bbox[0][0]
-            self.stop = self.bbox[1][0]
-            return True
-        # elif self._close_boxes(car):
-        #     self.bbox = ((self.start,self.bbox[0][1]),(self.stop,self.bbox[1][1]))
-        #     return True
+            bbox = bbox_from_label(labels[0],1)
+            start = bbox[0][0]
+            stop = bbox[1][0]
+            if  stop - start > 20:
+                self.bbox = bbox
+                self.start = start
+                self.stop = stop
+                return True
 
         return False
     def is_it_a_car(self):
-        # the box is very big
+        # the box is very small
         if self.stopy - self.starty < 20:
             return False
         elif self.stop - self.start < 20:
@@ -139,7 +140,7 @@ class Car(object):
         heat[self.bbox[0][1]:self.bbox[1][1],
                  self.bbox[0][0]:self.bbox[1][0]] += 1
         
-        heat = apply_threshold(heat, 2)
+        heat = apply_threshold(heat, 1)
         heatmap = np.clip(heat, 0, 255)
         
         labels = label(heatmap)

@@ -25,15 +25,14 @@ def detect(img, dist_pickle):
     hot_windows = find_cars(img, Y_START_STOP[0], Y_START_STOP[1], SCALE, model,
                             X_scaler, ORIENT, PIX_PER_CELL, CELL_PER_BLOCK, SPATIAL_SIZE, HIST_BINS, COLOR_SPACE, SPATIAL_FEAT, HIST_FEAT, HOG_FEAT)
 
-    heat = np.zeros_like(img[:, :, 0]).astype(np.float)
-    heat = add_heat(heat, hot_windows)
-    heat = apply_threshold(heat, 1)
+    # heat = np.zeros_like(img[:, :, 0]).astype(np.float)
+    # heat = add_heat(heat, hot_windows)
+    # heat = apply_threshold(heat, 1)
 
-    heatmap = np.clip(heat, 0, 255)
-    labels = label(heatmap)
-    print(labels[1])
-    draw_img = Track.next_frame(draw_image, labels)
-   # draw_img = draw_labeled_bboxes(draw_image, labels)
+    # heatmap = np.clip(heat, 0, 255)
+    # labels = label(heatmap)
+    draw_img = Track.next_frame(draw_image, hot_windows)
+    #draw_img = draw_labeled_bboxes(draw_image, labels)
 
     return draw_img
 
@@ -59,9 +58,8 @@ def read_video(filename='project_video.mp4', saved=False):
         if saved:
             out.write(img)
 
-        # Our operations on the frame come here
         # Display the resulting frame
-        cv2.imshow('img', img)
+        # cv2.imshow('img', img)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -125,7 +123,7 @@ def read_test_images():
 
 
 def main(args):
-    read_video(filename='test_video.mp4', saved=args.save_video)
+    read_video(filename=args.fileinput, saved=args.save_video)
     # read_test_images()
 
 
