@@ -22,14 +22,21 @@ The goals / steps of this project are the following:
 [sliding_window2]: ./output_images/sliding_window-test4.jpg
 [sliding_window3]: ./output_images/sliding_window-test5.jpg
 
-[heat1]: ./output_images/heat_map-test1.jpg
-[heat2]: ./output_images/heat_map-test4.jpg
-[heat3]: ./output_images/heat_map-test5.jpg
+[heat1]: ./output_images/frame-1-heat.png
+[heat2]: ./output_images/frame-2-heat.png
+[heat3]: ./output_images/frame-3-heat.png
+[heat4]: ./output_images/frame-4-heat.png
+[heat5]: ./output_images/frame-5-heat.png
+[heat6]: ./output_images/frame-6-heat.png
+[fram1]: ./output_images/frame-1.png
+[fram2]: ./output_images/frame-2.png
+[fram3]: ./output_images/frame-3.png
+[fram4]: ./output_images/frame-4.png
+[fram5]: ./output_images/frame-5.png
+[fram6]: ./output_images/frame-6.png
 
-[image5]: ./examples/bboxes_and_heat.png
-[image6]: ./examples/labels_map.png
-[image7]: ./examples/output_bboxes.png
-[video1]: ./project_video.mp4
+[heat_output] ./output_images/frame-7-heat-output.png
+[detect]: ./output_images/frame-7-output.jpg
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
@@ -45,7 +52,7 @@ You're reading it!
 
 #### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
-The code for extracted HOG features is contained in lines # 21 through # 39 of the file called `utils.py`. 
+The code for extracted HOG features is contained in lines # 21 through # 39 in `utils.py`. 
 
 I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
 
@@ -103,7 +110,7 @@ Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spat
 ### Video Implementation
 
 #### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
-Here's a [link to my video result](./project_video.mp4)
+Here's a [link to my video result](./output-project_video.mp4)
 
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
@@ -115,13 +122,18 @@ Here's an example result showing the heatmap from a series of frames of video, t
 
 
 ### Here are six frames and their corresponding heatmaps:
-![alt text][image5]
+![alt text][heat1] ![alt text][frame1]
+![alt text][heat2] ![alt text][frame2]
+![alt text][heat3] ![alt text][frame3]
+![alt text][heat4] ![alt text][frame4]
+![alt text][heat5] ![alt text][frame5]
+![alt text][heat6] ![alt text][frame6]
 
 ### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:
-![alt text][image6]
+![alt text][heat_output]
 
 ### Here the resulting bounding boxes are drawn onto the last frame in the series:
-![alt text][image7]
+![alt text][detect]
 
 
 
@@ -135,7 +147,5 @@ Here I'll talk about the approach I took, what techniques I used, what worked an
 
 
 Tracker:
--  Accept frame and labels (position of cars in that frame).
-- For each label in the frame, check if the car already exist if one of the following the steps below is True:
-1. labels of new car overlaps with an exist car. `_label_overlap` function in line # through # in `tracker.py`
-2. check if the labels are close to each other.  `_close_boxes` function in line # through # in `tracker.py`
+-  Accept frame and boxes (position of cars in that frame).
+- 
