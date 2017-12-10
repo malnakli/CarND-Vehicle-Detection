@@ -25,14 +25,7 @@ def detect(img, dist_pickle):
     hot_windows = find_cars(img, Y_START_STOP[0], Y_START_STOP[1], SCALE, model,
                             X_scaler, ORIENT, PIX_PER_CELL, CELL_PER_BLOCK, SPATIAL_SIZE, HIST_BINS, COLOR_SPACE, SPATIAL_FEAT, HIST_FEAT, HOG_FEAT)
 
-    # heat = np.zeros_like(img[:, :, 0]).astype(np.float)
-    # heat = add_heat(heat, hot_windows)
-    # heat = apply_threshold(heat, 1)
-
-    # heatmap = np.clip(heat, 0, 255)
-    # labels = label(heatmap)
     draw_img = Track.next_frame(draw_image, hot_windows)
-    #draw_img = draw_labeled_bboxes(draw_image, labels)
 
     return draw_img
 
@@ -59,7 +52,7 @@ def read_video(filename='project_video.mp4', saved=False):
             out.write(img)
 
         # Display the resulting frame
-        # cv2.imshow('img', img)
+        cv2.imshow('img', img)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -72,7 +65,6 @@ def read_video(filename='project_video.mp4', saved=False):
 def read_test_images():
     car = "data/vehicles/GTI_Far/image0004.png"
     notcar = "data/non-vehicles/GTI/image776.png"
-    detect_car = "test_images/test1.jpg"
     sliding_windows = ["test_images/test4.jpg",
                        "test_images/test1.jpg", "test_images/test5.jpg"]
     dist_pickle = pickle.load(open("model_linear.p", 'rb'))
@@ -107,19 +99,6 @@ def read_test_images():
 
         sliding_window_img = draw_boxes(draw_image * 255, hot_windows)
         save(sliding_window_img, 'sliding_window', img_path)
-        # heat map
-        heat = np.zeros_like(img[:, :, 0]).astype(np.float)
-        heat = add_heat(heat, hot_windows)
-        heat = apply_threshold(heat, 1)
-        heatmap = np.clip(heat, 0, 255)
-        labels = label(heatmap)
-        heat_map_img = draw_labeled_bboxes(draw_image, labels)
-        save(heat * 255, 'heat_map', img_path)
-
-    # detect a car
-    detect_car_img = cv2.imread(detect_car)
-    detect_car_img = detect(detect_car_img, dist_pickle)
-    save(detect_car_img, 'detect_car', detect_car)
 
 
 def main(args):

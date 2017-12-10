@@ -145,7 +145,20 @@ Here's an example result showing the heatmap from a series of frames of video, t
 
 Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
 
+##### Date preparation
+I used the dataset which was provided with this project. even though I split them manually training and testing data, the data was not enough to obtain a generalization algorithm. Using the Udacity data which can be found [here] (https://github.com/udacity/self-driving-car/tree/master/annotations) ,it will improve generalization the trained model.
 
+##### model training
+SVM is a very good model to be used in classification problems, and it has very good parameters to tweak such as kernel (‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, ‘precomputed’), Also we can play with parameter C to smooth the decision boundary or obtains more train points correct. Another interesting parameter is gamma that indicates which training data has influence in the decision boundary, the far or the closes ones.
+
+Playing with SVM parameters can improve the accuracy result. However, other algorithm can be used instead such as decision tree or deep neural network.
+
+#####  HOG Features & Sliding Windows 
+I used HOG features and  color features to identify the car, which is good start, but we could improve by using Convolutional Neural Networks(CNNs) instead of HOG features and SVM and in particular one of the variation of Regional CNN 
+
+##### My implementation of the Tracker class
 Tracker:
 -  Accept frame and boxes (position of cars in that frame).
-- 
+-  Create a car from each box and add to `Tracker.cars` array
+-  After __ frames apply filter for false positives and `scipy.ndimage.measurements.label()`  for combining overlapping bounding boxes. `filter_cars` function does the previous operation.
+- Then add the result to `Tracker.display_cars` array. which is responsible for tracking cars
