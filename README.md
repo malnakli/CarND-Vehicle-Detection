@@ -28,15 +28,15 @@ The goals / steps of this project are the following:
 [heat4]: ./output_images/frame-4-heat.png
 [heat5]: ./output_images/frame-5-heat.png
 [heat6]: ./output_images/frame-6-heat.png
-[fram1]: ./output_images/frame-1.png
-[fram2]: ./output_images/frame-2.png
-[fram3]: ./output_images/frame-3.png
-[fram4]: ./output_images/frame-4.png
-[fram5]: ./output_images/frame-5.png
-[fram6]: ./output_images/frame-6.png
+[frame1]: ./output_images/frame-1.png
+[frame2]: ./output_images/frame-2.png
+[frame3]: ./output_images/frame-3.png
+[frame4]: ./output_images/frame-4.png
+[frame5]: ./output_images/frame-5.png
+[frame6]: ./output_images/frame-6.png
 
-[heat_output] ./output_images/frame-7-heat-output.png
-[detect]: ./output_images/frame-7-output.jpg
+[heat_output]: ./output_images/frame-7-heat-output.png
+[detect]: ./output_images/frame-7-output.png
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
