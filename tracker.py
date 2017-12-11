@@ -10,78 +10,52 @@ class Track(object):
     cars = []
     disply_cars = []
     @classmethod
-    def next_frame(cls, frame, labels):
+    def next_frame(cls, frame, bboxes):
         cls.frame_no += 1
-        [cls.cars.append(Car(bbox,cls.frame_no)) for bbox in labels]
-        if cls.frame_no % 5 == 0:
-            cls.filter_cars()
-            cls.disply_cars = [car for car in cls.disply_cars if car.car_disply > 0.1]
-        
+        [cls.cars.append(Car(bbox,cls.frame_no)) for bbox in bboxes]
+        if cls.frame_no % 10 == 0:
+            cls.filter_cars(frame.shape)
+            
         for car in cls.disply_cars:
             if car.trackable:
                 cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 255, 0), 6)
-            # else:
-            #     cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 0, 255), 6)
+            elif car.display:
+                cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 0, 255), 6)
 
         return frame
 
     @classmethod
-    def filter_cars(cls):
+    def filter_cars(cls,img_shape):
         hot_windows = [car.bbox for car in cls.cars]
-        heat = np.zeros((720,1280)).astype(np.float)
+        heat = np.zeros(img_shape[:-1]).astype(np.float)
         heat = add_heat(heat, hot_windows)
-        heat = apply_threshold(heat, 4)
+        heat = apply_threshold(heat, 16)
         heatmap = np.clip(heat, 0, 255)
         labels = label(heatmap)
         cls.cars = []
         cls.bbox_from_labels(labels)
-        #cls.disply_cars = [car for car in cls.cars if car.is_it_a_car()]
         [cls.update_disply_cars(car) for car in cls.cars]
-        cls.calculate_car_disply_precentage()
+        cls.disply_cars = [car for car in cls.disply_cars if np.absolute(cls.frame_no - car.last_frame_seen ) < 11 or car.trackable]
+    
     @classmethod
     def update_disply_cars(cls,new_car):
         if len(cls.disply_cars) == 0:
-            cls.disply_cars = cls.cars
+            cls.disply_cars.append(new_car)
         else:
             car_exist = False
             for car in cls.disply_cars:
                     if car.is_same_car(new_car):
                         car.num_of_seen += 1
                         car.last_frame_seen = cls.frame_no
-                        car.points = cls.calculate_car_points(car)
                         car_exist = True
+                        if car.num_of_seen > 6:
+                            car.trackable = True
+                        elif car.num_of_seen > 2:
+                            car.display = True
                         break
             if not car_exist:
                 cls.disply_cars.append(new_car)
-                
-    @classmethod
-    def calculate_car_points(cls, car):
-
-        num_of_frame_seen = car.num_of_seen 
-        number_of_frame_shown = np.absolute(car.last_frame_seen - car.first_frame_seen) 
-        #last_frame_seen  = np.absolute(cls.frame_no - car.first_frame_seen)
-        
-        return num_of_frame_seen + number_of_frame_shown
-
-    @classmethod
-    def calculate_car_disply_precentage(cls):
-
-        cars_points = [car.points for car in cls.disply_cars]
-        # Compute softmax values for each sets of scores in cars_points
-        cars_disply_percentages = np.exp(cars_points) / np.sum(np.exp(cars_points), axis=0)
-        for index, car in enumerate(cls.disply_cars):
-            car.car_disply = cars_disply_percentages[index]
-            if (car.car_disply > .75) :
-                if car.is_it_a_car():
-                    car.trackable = True
-                else:
-                    car.car_disply -= .75
-            else:
-                car.trackable = False
-
-            print(cars_disply_percentages[index] * 100)
-        
-
+    
     @classmethod
     def bbox_from_labels(cls, labels):
         # Iterate through all detected cars
@@ -104,26 +78,29 @@ class Car(object):
         self.stop_y = self.bbox[1][1]
         self.last_frame_seen = frame_no
         self.first_frame_seen = frame_no
-        self.points = 0 # number, which will be used to compare with other frames
-        self.car_disply = 0.0 # change to disply car in percentage
+        self.display = False
         self.trackable = False # when True then start track
 
     def is_same_car(self, car):
-      
+        if self.trackable:
+            return False
+
         labels = self._label_overlap(car)
 
         if labels[1] == 1:
+            # adjust the box of the car if it only seen less than 6, otherwise trackable
+           
             if  self.start_x > car.start_x:
                 if self.stop_x > car.stop_x:
-                    self.modify_box(car,mode="bigger_or_smaller")
+                    self.adjust_box(car,mode="bigger_or_smaller")
                 else:
-                    self.modify_box(car,mode="righter")
+                    self.adjust_box(car,mode="righter")
             else:
                 if self.stop_x > car.stop_x:
-                    self.modify_box(car,mode="lefter")
+                    self.adjust_box(car,mode="lefter")
                 else:
-                    self.modify_box(car,mode="bigger_or_smaller")
-                
+                    self.adjust_box(car,mode="bigger_or_smaller")
+            
             return True
 
         return False
@@ -139,7 +116,7 @@ class Car(object):
         """
         check if the boxes are inside each other
         """
-        heat = np.zeros((720,1280)).astype(np.float)
+        heat = np.zeros(( 720,1280)).astype(np.float)
         heat[self.bbox[0][1]:self.bbox[1][1],
                  self.bbox[0][0]:self.bbox[1][0]] = 1
         heat[car.bbox[0][1]:car.bbox[1][1],
@@ -151,7 +128,7 @@ class Car(object):
         
         labels = label(heatmap)
         return labels
-    def modify_box(self,car,mode="None"):
+    def adjust_box(self,car,mode="None"):
         new_start_x = np.mean([car.start_x,self.start_x]).astype(np.int)
         if mode == 'lefter':
             # by how much start_x position has moved then apply to stop_x
