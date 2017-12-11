@@ -9,23 +9,24 @@ class Track(object):
     frame_no = 0
     cars = []
     disply_cars = []
+
     @classmethod
     def next_frame(cls, frame, bboxes):
         cls.frame_no += 1
-        [cls.cars.append(Car(bbox,cls.frame_no)) for bbox in bboxes]
+        [cls.cars.append(Car(bbox, cls.frame_no)) for bbox in bboxes]
         if cls.frame_no % 10 == 0:
             cls.filter_cars(frame.shape)
-            
+
         for car in cls.disply_cars:
             if car.trackable:
                 cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 255, 0), 6)
-            elif car.display:
-                cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 0, 255), 6)
+            # elif car.display:
+            #     cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 0, 255), 6)
 
         return frame
 
     @classmethod
-    def filter_cars(cls,img_shape):
+    def filter_cars(cls, img_shape):
         hot_windows = [car.bbox for car in cls.cars]
         heat = np.zeros(img_shape[:-1]).astype(np.float)
         heat = add_heat(heat, hot_windows)
@@ -35,36 +36,55 @@ class Track(object):
         cls.cars = []
         cls.bbox_from_labels(labels)
         [cls.update_disply_cars(car) for car in cls.cars]
-        cls.disply_cars = [car for car in cls.disply_cars if np.absolute(cls.frame_no - car.last_frame_seen ) < 11 or car.trackable]
-    
+        cls.combian_trackable_cars()
+
+        def keep_display_car(car):
+            if car.trackable:
+                if np.absolute(cls.frame_no - car.last_frame_seen) < 41 or car.num_of_seen > 8:
+                    return True
+            elif np.absolute(cls.frame_no - car.last_frame_seen) < 11:
+                return True
+            return False
+
+        cls.disply_cars = [
+            car for car in cls.disply_cars if keep_display_car(car)]
+
     @classmethod
-    def update_disply_cars(cls,new_car):
+    def update_disply_cars(cls, new_car):
         if len(cls.disply_cars) == 0:
             cls.disply_cars.append(new_car)
         else:
             car_exist = False
             for car in cls.disply_cars:
-                    if car.is_same_car(new_car):
-                        car.num_of_seen += 1
-                        car.last_frame_seen = cls.frame_no
-                        car_exist = True
-                        if car.num_of_seen > 6:
-                            car.trackable = True
-                        elif car.num_of_seen > 2:
-                            car.display = True
-                        break
+                if car.is_same_car(new_car):
+                    car.num_of_seen += 1
+                    car.last_frame_seen = cls.frame_no
+                    car_exist = True
+                    if car.num_of_seen > 3:
+                        car.trackable = True
+                    elif car.num_of_seen > 1:
+                        car.display = True
+                    break
             if not car_exist:
                 cls.disply_cars.append(new_car)
-    
+
     @classmethod
     def bbox_from_labels(cls, labels):
         # Iterate through all detected cars
         for car_number in range(1, labels[1] + 1):
-            bbox = bbox_from_label(labels[0],car_number)
-            #cls.check_car(bbox)
+            bbox = bbox_from_label(labels[0], car_number)
+            # cls.check_car(bbox)
             new_car = Car(bbox, cls.frame_no)
             if new_car.is_it_a_car():
                 cls.cars.append(new_car)
+
+    @classmethod
+    def combian_trackable_cars(cls):
+        for i in range(len(cls.disply_cars)):
+            for j in range(i + 1, len(cls.disply_cars)):
+                if cls.disply_cars[i].is_same_trackable_car(cls.disply_cars[j]):
+                    cls.disply_cars[j].trackable = False
+                    cls.disply_cars[j].last_frame_seen = 0
 
 
 class Car(object):
@@ -79,7 +99,7 @@ class Car(object):
         self.last_frame_seen = frame_no
         self.first_frame_seen = frame_no
         self.display = False
-        self.trackable = False # when True then start track
+        self.trackable = False  # when True then start track
 
     def is_same_car(self, car):
         if self.trackable:
@@ -89,21 +109,22 @@ class Car(object):
 
         if labels[1] == 1:
             # adjust the box of the car if it only seen less than 6, otherwise trackable
-           
-            if  self.start_x > car.start_x:
+
+            if self.start_x > car.start_x:
                 if self.stop_x > car.stop_x:
-                    self.adjust_box(car,mode="bigger_or_smaller")
+                    self.adjust_box(car, mode="bigger_or_smaller")
                 else:
-                    self.adjust_box(car,mode="righter")
+                    self.adjust_box(car, mode="righter")
             else:
                 if self.stop_x > car.stop_x:
-                    self.adjust_box(car,mode="lefter")
+                    self.adjust_box(car, mode="lefter")
                 else:
-                    self.adjust_box(car,mode="bigger_or_smaller")
-            
+                    self.adjust_box(car, mode="bigger_or_smaller")
+
             return True
 
         return False
+
     def is_it_a_car(self):
         # the box is very small
         if self.stop_y - self.start_y < 20:
@@ -112,24 +133,24 @@ class Car(object):
             return False
         return True
 
-    def _label_overlap(self,car):
+    def _label_overlap(self, car):
         """
         check if the boxes are inside each other
         """
-        heat = np.zeros(( 720,1280)).astype(np.float)
+        heat = np.zeros((720, 1280)).astype(np.float)
         heat[self.bbox[0][1]:self.bbox[1][1],
-                 self.bbox[0][0]:self.bbox[1][0]] = 1
-        heat[car.bbox[0][1]:car.bbox[1][1],
-                 car.bbox[0][0]:car.bbox[1][0]] = 1
-       
-        
-        #heat = apply_threshold(heat, 1)
+             self.bbox[0][0]: self.bbox[1][0]] = 1
+        heat[car.bbox[0][1]: car.bbox[1][1],
+             car.bbox[0][0]: car.bbox[1][0]] += 1
+
+        heat = apply_threshold(heat, 1)
         heatmap = np.clip(heat, 0, 255)
-        
+
         labels = label(heatmap)
         return labels
-    def adjust_box(self,car,mode="None"):
-        new_start_x = np.mean([car.start_x,self.start_x]).astype(np.int)
+
+    def adjust_box(self, car, mode="None"):
+        new_start_x = np.mean([car.start_x, self.start_x]).astype(np.int)
         if mode == 'lefter':
             # by how much start_x position has moved then apply to stop_x
             self.stop_x -= np.absolute(new_start_x - self.start_x)
@@ -139,13 +160,40 @@ class Car(object):
             self.stop_x += np.absolute(new_start_x - self.start_x)
             self.start_x = new_start_x
         elif mode == 'bigger_or_smaller':
-            new_start_y = np.mean([car.start_y,self.start_y]).astype(np.int)
-            new_stop_x = np.mean([car.stop_x,self.stop_x]).astype(np.int)
-            new_stop_y = np.mean([car.stop_y,self.stop_y]).astype(np.int)
+            new_start_y = np.mean([car.start_y, self.start_y]).astype(np.int)
+            new_stop_x = np.mean([car.stop_x, self.stop_x]).astype(np.int)
+            new_stop_y = np.mean([car.stop_y, self.stop_y]).astype(np.int)
             self.start_x = new_start_x
             self.start_y = new_start_y
             self.stop_x = new_stop_x
             self.stop_y = new_stop_y
-        
-        self.bbox = ((self.start_x,self.start_y),(self.stop_x,self.stop_y))
 
+        self.bbox = ((self.start_x, self.start_y), (self.stop_x, self.stop_y))
+
+    def is_same_trackable_car(self, car):
+        if not self.trackable or not car.trackable:
+            return False
+
+        labels = self._label_overlap(car)
+        if labels[1] == 1:
+            box = bbox_from_label(labels[0], 1)
+            length_self_x = np.absolute(self.start_x - self.stop_x)
+            length_box_x = np.absolute(box[0][0] - box[1][0])
+
+            if self.start_x > car.start_x:
+                if self.stop_x > car.stop_x:
+                    self.adjust_box(car, mode="bigger_or_smaller")
+                    return True
+                else:
+                    if length_box_x > length_self_x * 0.5:
+                        self.adjust_box(car, mode="righter")
+                        return True
+            else:
+                if self.stop_x > car.stop_x:
+                    if length_box_x > length_self_x * 0.5:
+                        self.adjust_box(car, mode="lefter")
+                        return True
+                else:
+                    self.adjust_box(car, mode="bigger_or_smaller")
+                    return True
+        return False
