@@ -11,12 +11,12 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 [car_not_car]: ./examples/car_not_car.png
-[hog_car1]: ./output_images/hog_car_ch0.png
-[hog_car2]: ./output_images/hog_car_ch1.png
-[hog_car3]: ./output_images/hog_car_ch2.png
-[hog_notcar1]: ./output_images/hog_notcar_ch0.png
-[hog_notcar2]: ./output_images/hog_notcar_ch1.png
-[hog_notcar3]: ./output_images/hog_notcar_ch2.png
+[hog_car1]: ./output_images/hog_car_ch0-image0004.png
+[hog_car2]: ./output_images/hog_car_ch1-image0004.png
+[hog_car3]: ./output_images/hog_car_ch2-image0004.png
+[hog_notcar1]: ./output_images/hog_notcar_ch0-image776.png
+[hog_notcar2]: ./output_images/hog_notcar_ch1-image776.png
+[hog_notcar3]: ./output_images/hog_notcar_ch2-image776.png
 
 [sliding_window1]: ./output_images/sliding_window-test1.jpg
 [sliding_window2]: ./output_images/sliding_window-test4.jpg
@@ -60,7 +60,7 @@ I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an 
 
 I then explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`).  I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.
 
-Here is an example using the `YCrCb` color space and HOG parameters of `orientations=9`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
+Here is an example using the `YCrCb` color space and HOG parameters of `orientations=9`, `pixels_per_cell=(6, 6)` and `cells_per_block=(2, 2)`:
 
 ![alt text][hog_car1] ![alt text][hog_notcar1]
 ![alt text][hog_car2] ![alt text][hog_notcar2]
@@ -77,7 +77,6 @@ All the code need to train a model in `train.py` file.
 2. Extract features (HOG, color and spatial features) for both data by using `extract_features` function in `utils.py` in lines # 66 through # 106
 3. split data into training and testing manual because some of the vehicles data are the same, which appear more than once, but typically under significantly different lighting/angle from other instances.
 4. I trained a SVM using `sklearn.svm.SVC` with the following parameters 
-# TODO fill the parameters
 `kernel=linear`,`C=5`,`gamma=auto`
 
 ### Sliding Window Search

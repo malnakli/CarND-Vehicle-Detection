@@ -20,8 +20,8 @@ class Track(object):
         for car in cls.disply_cars:
             if car.trackable:
                 cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 255, 0), 6)
-            # elif car.display:
-            #     cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 0, 255), 6)
+            elif car.display:
+                cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 0, 255), 6)
 
         return frame
 
@@ -40,9 +40,9 @@ class Track(object):
 
         def keep_display_car(car):
             if car.trackable:
-                if np.absolute(cls.frame_no - car.last_frame_seen) < 41 or car.num_of_seen > 8:
+                if np.absolute(cls.frame_no - car.last_frame_seen) < 201 :
                     return True
-            elif np.absolute(cls.frame_no - car.last_frame_seen) < 11:
+            elif np.absolute(cls.frame_no - car.last_frame_seen) < 31:
                 return True
             return False
 
@@ -60,9 +60,9 @@ class Track(object):
                     car.num_of_seen += 1
                     car.last_frame_seen = cls.frame_no
                     car_exist = True
-                    if car.num_of_seen > 3:
+                    if car.num_of_seen > 8:
                         car.trackable = True
-                    elif car.num_of_seen > 1:
+                    elif car.num_of_seen > 2:
                         car.display = True
                     break
             if not car_exist:
