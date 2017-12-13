@@ -60,7 +60,7 @@ I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an 
 
 I then explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`).  I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.
 
-Here is an example using the `YCrCb` color space and HOG parameters of `orientations=9`, `pixels_per_cell=(6, 6)` and `cells_per_block=(2, 2)`:
+Here is an example using the `YCrCb` color space and HOG parameters of `orientations=9`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
 
 ![alt text][hog_car1] ![alt text][hog_notcar1]
 ![alt text][hog_car2] ![alt text][hog_notcar2]
@@ -77,7 +77,7 @@ All the code need to train a model in `train.py` file.
 2. Extract features (HOG, color and spatial features) for both data by using `extract_features` function in `utils.py` in lines # 66 through # 106
 3. split data into training and testing manual because some of the vehicles data are the same, which appear more than once, but typically under significantly different lighting/angle from other instances.
 4. I trained a SVM using `sklearn.svm.SVC` with the following parameters 
-`kernel=linear`,`C=5`,`gamma=auto`
+`kernel=linear`,`C=0.1`,`gamma=auto`
 
 ### Sliding Window Search
 
@@ -159,9 +159,9 @@ I used HOG features and  color features to identify the car, which is good start
 - All the code can be found in `tracker.py`:
 -  Accept frame and boxes (position of cars in that frame).
 -  Create a car from each box and add to `Tracker.cars` array
--  After 10 frames (one cycle) apply filter for false positives and `scipy.ndimage.measurements.label()`  for combining overlapping bounding boxes. `filter_cars` function does the previous operation.
+-  After 5 frames (one cycle) apply filter for false positives and `scipy.ndimage.measurements.label()`  for combining overlapping bounding boxes. `filter_cars` function does the previous operation.
 - Then add the result to `Tracker.display_cars` array. which is responsible for tracking cars
-- If a car has been seen more than 3 times then **display**.
- the code corresponding to these can be found in `update_display_cars` function line # 51 through # 65.
-- The car will be deleted if it was not seen for 3 consecutive frame and 6 for **display** car.
+- If a car has been seen more than 2 times then **display**.
+ the code corresponding to these can be found in `update_display_cars` function line # 55 through # 69.
+- The car will be deleted if it was not seen for 21 consecutive frame and 36 for **display** car and 66 if it seen more than 6 times.
 

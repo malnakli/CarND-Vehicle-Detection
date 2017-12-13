@@ -14,13 +14,14 @@ class Track(object):
     def next_frame(cls, frame, bboxes):
         cls.frame_no += 1
         [cls.cars.append(Car(bbox, cls.frame_no)) for bbox in bboxes]
-        if cls.frame_no % 10 == 0:
+        if cls.frame_no % 5 == 0:
             cls.filter_cars(frame.shape)
 
         for car in cls.disply_cars:
             if car.display:
                 cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 0, 255), 6)
-
+            # else:
+            #     cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 255, 0), 6)
         return frame
 
     @classmethod
@@ -28,7 +29,7 @@ class Track(object):
         hot_windows = [car.bbox for car in cls.cars]
         heat = np.zeros(img_shape[:-1]).astype(np.float)
         heat = add_heat(heat, hot_windows)
-        heat = apply_threshold(heat, 16)
+        heat = apply_threshold(heat, 8)
         heatmap = np.clip(heat, 0, 255)
         labels = label(heatmap)
         cls.cars = []
@@ -36,10 +37,13 @@ class Track(object):
         [cls.update_display_cars(car) for car in cls.cars]
 
         def keep_display_car(car):
+            frame_diff = np.absolute(cls.frame_no - car.last_frame_seen)
             if car.display:
-                if np.absolute(cls.frame_no - car.last_frame_seen) < 61:
+                if frame_diff < 36:
                     return True
-            elif np.absolute(cls.frame_no - car.last_frame_seen) < 31:
+                if car.num_of_seen > 6 and frame_diff < 66:
+                    return True
+            elif frame_diff < 21:
                 return True
 
             return False
@@ -58,7 +62,7 @@ class Track(object):
                     car.num_of_seen += 1
                     car.last_frame_seen = cls.frame_no
                     car_exist = True
-                    if car.num_of_seen > 3:
+                    if car.num_of_seen > 2:
                         car.display = True
                     break
             if not car_exist:

@@ -146,7 +146,7 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
     # 64 was the original sampling rate, with 8 cells and 8 pix per cell
     window = 64
     nblocks_per_window = (window // pix_per_cell) - cell_per_block + 1
-    cells_per_step = 3  # Instead of overlap, define how many cells to step
+    cells_per_step = 2  # Instead of overlap, define how many cells to step
     nxsteps = (nxblocks - nblocks_per_window) // cells_per_step
     nysteps = (nyblocks - nblocks_per_window) // cells_per_step
 
@@ -200,8 +200,9 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
 
             test_features = X_scaler.transform(test_features)
 
-            test_prediction = svc.predict(test_features)
-            if test_prediction == 1:
+            test_prediction = svc.decision_function(test_features)
+            threshold = 0.5  # choose a threshold level
+            if test_prediction > threshold:
                 xbox_left = np.int(xleft * scale)
                 ytop_draw = np.int(ytop * scale)
                 win_draw = np.int(window * scale)
@@ -234,13 +235,14 @@ def apply_threshold(heatmap, threshold):
 def draw_labeled_bboxes(img, labels):
     # Iterate through all detected cars
     for car_number in range(1, labels[1] + 1):
-        bbox = bbox_from_label(labels[0],car_number)
+        bbox = bbox_from_label(labels[0], car_number)
         # Draw the box on the image
         cv2.rectangle(img, bbox[0], bbox[1], (0, 0, 255), 6)
     # Return the image
     return img
 
-def bbox_from_label(labels,number):
+
+def bbox_from_label(labels, number):
     # Find pixels with each number label value
     nonzero = (labels == number).nonzero()
     # Identify x and y values of those pixels

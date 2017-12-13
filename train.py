@@ -94,7 +94,7 @@ def load_data(regenerate=False):
 
 
 def train_model(dict_data):
-    model = SVC(kernel="linear", C=10.0)
+    model = SVC(kernel="linear", C=0.1)
     t = time.time()
     model.fit(dict_data['X_train'], dict_data['y_train'])
     t2 = time.time()
@@ -129,22 +129,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    # dict_data = load_data()
-    # print('loaded data')
-    # dist_pickle = pickle.load(open("model_linear.p", 'rb'))
-    # print('loaded model')
-    # print('Test Accuracy of model = ', round(
-    #     dist_pickle["model"].score(dict_data['X_test'][0:200], dict_data['y_test'][0:200]), 4))
-
-    # Use a SVC
-    # parameters = {'C': np.arange(0.0, 10 + 0.0, 1).tolist(),
-    #               'gamma': np.arange(0.0, 0.5 + 0.0, 0.05).tolist()}
-
-    #model = SVC(kernel='linear', C=1.0, gamma=0.1)
-    # clf = RandomizedSearchCV(
-    #     estimator=model, param_distributions=parameters, n_jobs=2, verbose=9)
-
-    # print(clf.best_estimator_)
-    # print(clf.best_score_)
-    # print(clf.best_params_)
-    # Check the score of the SVC
