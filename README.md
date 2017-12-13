@@ -161,7 +161,7 @@ I used HOG features and  color features to identify the car, which is good start
 -  Create a car from each box and add to `Tracker.cars` array
 -  After 10 frames (one cycle) apply filter for false positives and `scipy.ndimage.measurements.label()`  for combining overlapping bounding boxes. `filter_cars` function does the previous operation.
 - Then add the result to `Tracker.display_cars` array. which is responsible for tracking cars
-- If a car has been seen more than 2__ then turn **display** on (which has a **red** box on the video). and if more than 5___ then mark them as **trackable** (which has a **green** box on the video).
- the code corresponding to these can be found in `update_display_cars` function line #__ through #__.
-- The car will be deleted if it was not seen for __ frame consecutive and ___ for **trackable** car.
+- If a car has been seen more than 3 times then **display**.
+ the code corresponding to these can be found in `update_display_cars` function line # 51 through # 65.
+- The car will be deleted if it was not seen for 3 consecutive frame and 6 for **display** car.
 

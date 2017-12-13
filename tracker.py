@@ -18,9 +18,7 @@ class Track(object):
             cls.filter_cars(frame.shape)
 
         for car in cls.disply_cars:
-            if car.trackable:
-                cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 255, 0), 6)
-            elif car.display:
+            if car.display:
                 cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 0, 255), 6)
 
         return frame
@@ -35,22 +33,22 @@ class Track(object):
         labels = label(heatmap)
         cls.cars = []
         cls.bbox_from_labels(labels)
-        [cls.update_disply_cars(car) for car in cls.cars]
-        cls.combian_trackable_cars()
+        [cls.update_display_cars(car) for car in cls.cars]
 
         def keep_display_car(car):
-            if car.trackable:
-                if np.absolute(cls.frame_no - car.last_frame_seen) < 201 :
+            if car.display:
+                if np.absolute(cls.frame_no - car.last_frame_seen) < 61:
                     return True
             elif np.absolute(cls.frame_no - car.last_frame_seen) < 31:
                 return True
+
             return False
 
         cls.disply_cars = [
             car for car in cls.disply_cars if keep_display_car(car)]
 
     @classmethod
-    def update_disply_cars(cls, new_car):
+    def update_display_cars(cls, new_car):
         if len(cls.disply_cars) == 0:
             cls.disply_cars.append(new_car)
         else:
@@ -60,9 +58,7 @@ class Track(object):
                     car.num_of_seen += 1
                     car.last_frame_seen = cls.frame_no
                     car_exist = True
-                    if car.num_of_seen > 8:
-                        car.trackable = True
-                    elif car.num_of_seen > 2:
+                    if car.num_of_seen > 3:
                         car.display = True
                     break
             if not car_exist:
@@ -77,14 +73,6 @@ class Track(object):
             new_car = Car(bbox, cls.frame_no)
             if new_car.is_it_a_car():
                 cls.cars.append(new_car)
-
-    @classmethod
-    def combian_trackable_cars(cls):
-        for i in range(len(cls.disply_cars)):
-            for j in range(i + 1, len(cls.disply_cars)):
-                if cls.disply_cars[i].is_same_trackable_car(cls.disply_cars[j]):
-                    cls.disply_cars[j].trackable = False
-                    cls.disply_cars[j].last_frame_seen = 0
 
 
 class Car(object):
@@ -169,31 +157,3 @@ class Car(object):
             self.stop_y = new_stop_y
 
         self.bbox = ((self.start_x, self.start_y), (self.stop_x, self.stop_y))
-
-    def is_same_trackable_car(self, car):
-        if not self.trackable or not car.trackable:
-            return False
-
-        labels = self._label_overlap(car)
-        if labels[1] == 1:
-            box = bbox_from_label(labels[0], 1)
-            length_self_x = np.absolute(self.start_x - self.stop_x)
-            length_box_x = np.absolute(box[0][0] - box[1][0])
-
-            if self.start_x > car.start_x:
-                if self.stop_x > car.stop_x:
-                    self.adjust_box(car, mode="bigger_or_smaller")
-                    return True
-                else:
-                    if length_box_x > length_self_x * 0.5:
-                        self.adjust_box(car, mode="righter")
-                        return True
-            else:
-                if self.stop_x > car.stop_x:
-                    if length_box_x > length_self_x * 0.5:
-                        self.adjust_box(car, mode="lefter")
-                        return True
-                else:
-                    self.adjust_box(car, mode="bigger_or_smaller")
-                    return True
-        return False
