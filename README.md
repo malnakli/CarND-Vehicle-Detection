@@ -87,7 +87,7 @@ I implemented by sliding window by using sub-sampling, the entire code can be fo
 
 1. Crop unnecessary region of the image from top and bottom (400px, 656px)
 2. convert the image if the training images have been converted
-3. resize the image by scale it down (33.3%)
+3. resize the image by scale it down (16.6%)
 4. get the three channels of `YCrCb`
 5. Compute individual channel HOG features for the entire image
 6. loop through the entire image and of each cell block do the following:
