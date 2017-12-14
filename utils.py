@@ -201,7 +201,7 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
             test_features = X_scaler.transform(test_features)
 
             test_prediction = svc.decision_function(test_features)
-            threshold = 0.5  # choose a threshold level
+            threshold = 0.3  # choose a threshold level
             if test_prediction > threshold:
                 xbox_left = np.int(xleft * scale)
                 ytop_draw = np.int(ytop * scale)

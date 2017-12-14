@@ -14,14 +14,14 @@ class Track(object):
     def next_frame(cls, frame, bboxes):
         cls.frame_no += 1
         [cls.cars.append(Car(bbox, cls.frame_no)) for bbox in bboxes]
-        if cls.frame_no % 5 == 0:
+        if cls.frame_no % 7 == 0:
             cls.filter_cars(frame.shape)
 
         for car in cls.disply_cars:
             if car.display:
-                cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 0, 255), 6)
-            # else:
-            #     cv2.rectangle(frame, car.bbox[0], car.bbox[1], (0, 255, 0), 6)
+                cv2.rectangle(frame, car.bbox[0],
+                              car.bbox[1], (0, 0, 255), 6)
+
         return frame
 
     @classmethod

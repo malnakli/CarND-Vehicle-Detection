@@ -101,7 +101,7 @@ I implemented by sliding window by using sub-sampling, the entire code can be fo
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
+Ultimately I searched on 1.2 scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
 
 ![alt text][sliding_window1] ![alt text][sliding_window2] ![alt text][sliding_window3]
 ---
@@ -159,7 +159,7 @@ I used HOG features and  color features to identify the car, which is good start
 - All the code can be found in `tracker.py`:
 -  Accept frame and boxes (position of cars in that frame).
 -  Create a car from each box and add to `Tracker.cars` array
--  After 5 frames (one cycle) apply filter for false positives and `scipy.ndimage.measurements.label()`  for combining overlapping bounding boxes. `filter_cars` function does the previous operation.
+-  After 7 frames (one cycle) apply filter for false positives and `scipy.ndimage.measurements.label()`  for combining overlapping bounding boxes. `filter_cars` function does the previous operation.
 - Then add the result to `Tracker.display_cars` array. which is responsible for tracking cars
 - If a car has been seen more than 2 times then **display**.
  the code corresponding to these can be found in `update_display_cars` function line # 55 through # 69.
