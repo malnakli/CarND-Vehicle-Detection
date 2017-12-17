@@ -79,13 +79,21 @@ All the code need to train a model in `train.py` file.
 4. I trained a SVM using `sklearn.svm.SVC` with the following parameters 
 `kernel=linear`,`C=0.1`,`gamma=auto`
 
+I used SVM because it was recommend by Udacity to give a better result on classification for such data.     
+Also, I used linear kernel because it train faster on my laptop and still give me more than 98% accuracy on test set.     
+Since this is a binary classification (vehicle,non-vehicle) data seems to be separate linear as well.   
+
+I tried non-linear SVM such as rbf’ and ‘poly’ however, I never get more than 90% accuracy.     
+Also, it took 5 times longer to train comparing to linear kernel.
+
+
 ### Sliding Window Search
 
 #### 1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
 
 I implemented by sliding window by using sub-sampling, the entire code can be found in line # 123 through # 214 in `utils.py`. 
 
-1. Crop unnecessary region of the image from top and bottom (400px, 656px)
+1. Crop unnecessary region of the image from top and bottom (400px, 656px), and left (450px,)
 2. convert the image if the training images have been converted
 3. resize the image by scale it down (16.6%)
 4. get the three channels of `YCrCb`
@@ -162,6 +170,7 @@ I used HOG features and  color features to identify the car, which is good start
 -  After 7 frames (one cycle) apply filter for false positives and `scipy.ndimage.measurements.label()`  for combining overlapping bounding boxes. `filter_cars` function does the previous operation.
 - Then add the result to `Tracker.display_cars` array. which is responsible for tracking cars
 - If a car has been seen more than 2 times then **display**.
- the code corresponding to these can be found in `update_display_cars` function line # 55 through # 69.
-- The car will be deleted if it was not seen for 21 consecutive frame and 36 for **display** car and 66 if it seen more than 6 times.
+- If a car has been seen more than 5 times then check its direction, it its moving towered left then set **trackable** to true.
+ the code corresponding to these can be found in `update_display_cars` function line # 56 through # 72.
+- The car will be deleted if it was not seen for 15 consecutive frame and 55 for **trackable** cars
 

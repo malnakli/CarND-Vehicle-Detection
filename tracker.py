@@ -21,7 +21,7 @@ class Track(object):
             if car.display:
                 cv2.rectangle(frame, car.bbox[0],
                               car.bbox[1], (0, 0, 255), 6)
-
+        
         return frame
 
     @classmethod
@@ -29,7 +29,7 @@ class Track(object):
         hot_windows = [car.bbox for car in cls.cars]
         heat = np.zeros(img_shape[:-1]).astype(np.float)
         heat = add_heat(heat, hot_windows)
-        heat = apply_threshold(heat, 8)
+        heat = apply_threshold(heat, 9)
         heatmap = np.clip(heat, 0, 255)
         labels = label(heatmap)
         cls.cars = []
@@ -38,12 +38,10 @@ class Track(object):
 
         def keep_display_car(car):
             frame_diff = np.absolute(cls.frame_no - car.last_frame_seen)
-            if car.display:
-                if frame_diff < 36:
+            if car.trackable:  
+                if frame_diff < 55:
                     return True
-                if car.num_of_seen > 6 and frame_diff < 66:
-                    return True
-            elif frame_diff < 21:
+            elif frame_diff < 15:
                 return True
 
             return False
@@ -62,7 +60,9 @@ class Track(object):
                     car.num_of_seen += 1
                     car.last_frame_seen = cls.frame_no
                     car_exist = True
-                    if car.num_of_seen > 2:
+                    if car.num_of_seen > 8:
+                        car.moving_direction()
+                    elif car.num_of_seen > 2:
                         car.display = True
                     break
             if not car_exist:
@@ -91,30 +91,33 @@ class Car(object):
         self.last_frame_seen = frame_no
         self.first_frame_seen = frame_no
         self.display = False
-        self.trackable = False  # when True then start track
-
+        self.trackable = False 
+        self.moving = []
     def is_same_car(self, car):
-        if self.trackable:
-            return False
 
         labels = self._label_overlap(car)
 
         if labels[1] == 1:
-            # adjust the box of the car if it only seen less than 6, otherwise trackable
+            # adjust the box of the car 
 
             if self.start_x > car.start_x:
+                self.moving.append('lefter')
                 if self.stop_x > car.stop_x:
                     self.adjust_box(car, mode="bigger_or_smaller")
                 else:
+                    
                     self.adjust_box(car, mode="righter")
             else:
+                self.moving.append('righter')
                 if self.stop_x > car.stop_x:
+                    
                     self.adjust_box(car, mode="lefter")
                 else:
                     self.adjust_box(car, mode="bigger_or_smaller")
 
             return True
-
+        
+        
         return False
 
     def is_it_a_car(self):
@@ -161,3 +164,16 @@ class Car(object):
             self.stop_y = new_stop_y
 
         self.bbox = ((self.start_x, self.start_y), (self.stop_x, self.stop_y))
+
+    def moving_direction(self):
+        """
+        if the car moving towred left, it means the car passing me
+        and right means I am passing the car
+        """
+        moving = self.moving[-30:]
+        length  = len(moving) 
+        left_length = len([x for x in moving if x == "lefter"])
+        if left_length > length / 2:
+            self.trackable = True
+        else:
+            self.trackable = False

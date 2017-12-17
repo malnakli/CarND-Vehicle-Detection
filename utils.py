@@ -122,8 +122,16 @@ def draw_boxes(img, bboxes, color=(0, 0, 255), thick=6):
 # Define a single function that can extract features using hog sub-sampling and make predictions
 def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, color_space, spatial_feat, hist_feat, hog_feat):
 
-    img_tosearch = img[ystart:ystop, :, :]
+    # For particular this video project_video.mp4, we can cut off the image on the x-axis. 
+    # We are not interested, for example, in part of the image for opposite lane. 
+    # So on the x-axis, we will cut off image 450 pixels. 
+    # But note that this will make this algorithm less general and on some type of roads it will not work - 
+    # for example, if the car is in the central or right lane of the highway.
 
+    xstart = 450 # change this to 0 for general 
+
+    img_tosearch = img[ystart:ystop, xstart:, :] 
+    
     if color_space != 'RGB':
         ctrans_tosearch = convert_color(img_tosearch, conv=color_space)
     else:
@@ -144,7 +152,7 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
     nfeat_per_block = orient * cell_per_block**2
 
     # 64 was the original sampling rate, with 8 cells and 8 pix per cell
-    window = 64
+    window = 64 
     nblocks_per_window = (window // pix_per_cell) - cell_per_block + 1
     cells_per_step = 2  # Instead of overlap, define how many cells to step
     nxsteps = (nxblocks - nblocks_per_window) // cells_per_step
@@ -201,9 +209,9 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
             test_features = X_scaler.transform(test_features)
 
             test_prediction = svc.decision_function(test_features)
-            threshold = 0.3  # choose a threshold level
+            threshold = 0.1  #  a threshold level
             if test_prediction > threshold:
-                xbox_left = np.int(xleft * scale)
+                xbox_left = np.int((xleft * scale) + xstart)
                 ytop_draw = np.int(ytop * scale)
                 win_draw = np.int(window * scale)
                 bboxes.append(
