@@ -171,6 +171,6 @@ I used HOG features and  color features to identify the car, which is good start
 - Then add the result to `Tracker.display_cars` array. which is responsible for tracking cars
 - If a car has been seen more than 2 times then **display**.
 - If a car has been seen more than 5 times then check its direction, it its moving towered left then set **trackable** to true.
- the code corresponding to these can be found in `update_display_cars` function line # 56 through # 72.
+ the code corresponding to these can be found in `update_display_cars` function line # 53 through # 69.
 - The car will be deleted if it was not seen for 15 consecutive frame and 55 for **trackable** cars
 
